@@ -1,6 +1,7 @@
 package com.wrapped.gui;
 
 import com.wrapped.cards.Card;
+import com.wrapped.compat.Gfx;
 import com.wrapped.gui.StageKit.Hero;
 import com.wrapped.gui.StageKit.Part;
 import com.wrapped.gui.StageKit.Stamp;
@@ -8,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -57,7 +57,7 @@ final class HabitCards {
     static void playTime(StageFrame f, Card.PlayTime c) {
         long t = StageKit.elapsed(f);
         Font font = f.font();
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         Rect content = StageKit.content(f);
         int cx = content.x() + content.w() / 2;
         PlayLayout l = playLayout(f, c);

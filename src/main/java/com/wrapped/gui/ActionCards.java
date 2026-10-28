@@ -1,8 +1,8 @@
 package com.wrapped.gui;
 
 import com.wrapped.cards.Card;
-import com.wrapped.compat.Compat;
 import com.wrapped.cards.PlayerType;
+import com.wrapped.compat.Compat;
 import com.wrapped.gui.StageKit.Hero;
 import com.wrapped.gui.StageKit.Part;
 import com.wrapped.gui.StageKit.Stamp;

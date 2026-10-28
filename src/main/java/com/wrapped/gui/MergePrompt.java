@@ -1,13 +1,14 @@
 package com.wrapped.gui;
 
 import com.wrapped.compat.Compat;
+import com.wrapped.compat.CompatScreen;
+import com.wrapped.compat.Gfx;
 import java.util.function.Consumer;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-public final class MergePrompt extends Screen {
+public final class MergePrompt extends CompatScreen {
     static final String QUESTION = "Add this instance to your Total?";
     static final String DETAIL = "Total adds up your history from every instance you play on this account.";
     private static final int MAX_W = 220;
@@ -58,7 +59,7 @@ public final class MergePrompt extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+    protected void draw(Gfx g, int mouseX, int mouseY, float delta) {
         int w = panelW();
         int x = panelX();
         int y = panelY();
@@ -66,6 +67,6 @@ public final class MergePrompt extends Screen {
         int cx = x + w / 2;
         int after = CardDraw.wrapped(g, font, QUESTION, cx, y + PAD, w - 2 * PAD, 2);
         CardDraw.wrapped(g, font, DETAIL, cx, after + 4, w - 2 * PAD, 3);
-        super.extractRenderState(g, mouseX, mouseY, delta);
+        drawWidgets(g, mouseX, mouseY, delta);
     }
 }

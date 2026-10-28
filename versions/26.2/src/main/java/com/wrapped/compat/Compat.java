@@ -8,7 +8,9 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.Screen;
@@ -29,6 +31,10 @@ public final class Compat {
     }
 
     private Compat() {
+    }
+
+    public static void registerKey(KeyMapping key) {
+        KeyMappingHelper.registerKeyMapping(key);
     }
 
     public static Screen screen(Minecraft client) {

@@ -2,6 +2,7 @@ package com.wrapped.gui;
 
 import com.wrapped.cards.Card;
 import com.wrapped.compat.Compat;
+import com.wrapped.compat.Gfx;
 import com.wrapped.gui.StageKit.Hero;
 import com.wrapped.gui.StageKit.Part;
 import com.wrapped.stats.ServerStat;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -58,7 +58,7 @@ final class PlaceCards {
 
     static void countdown(StageFrame f, Card.Countdown c) {
         Font font = f.font();
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         Rect content = StageKit.content(f);
         List<ServerStat> ranked = c.ranked();
         int n = ranked.size();

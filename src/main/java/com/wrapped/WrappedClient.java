@@ -6,7 +6,6 @@ import com.wrapped.gui.WrappedScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
@@ -23,7 +22,7 @@ public final class WrappedClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        KeyMappingHelper.registerKeyMapping(OPEN);
+        Compat.registerKey(OPEN);
         ClientLifecycleEvents.CLIENT_STARTED.register(WrappedState::startLoading);
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             WrappedState.onTick(ticks++);

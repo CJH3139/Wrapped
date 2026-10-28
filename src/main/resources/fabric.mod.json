@@ -11,9 +11,9 @@
     "client": ["com.wrapped.WrappedClient"]
   },
   "depends": {
-    "fabricloader": ">=0.19.5",
+    "fabricloader": ">=0.16.0",
     "fabric-api": "*",
     "minecraft": "${minecraft_dependency}",
-    "java": ">=25"
+    "java": "${java_dependency}"
   }
 }

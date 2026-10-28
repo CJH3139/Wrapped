@@ -1,6 +1,7 @@
 package com.wrapped.gui;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import com.wrapped.compat.Gfx;
+
 
 public final class Panels {
     static final int FACE = 0xFFC6C6C6;
@@ -14,7 +15,7 @@ public final class Panels {
     private Panels() {
     }
 
-    public static void panel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+    public static void panel(Gfx g, int x, int y, int w, int h) {
         int r = x + w;
         int b = y + h;
         g.fill(x + 1, y, r - 1, y + 1, OUTLINE);
@@ -28,7 +29,7 @@ public final class Panels {
         g.fill(r - 3, y + 3, r - 1, b - 1, SHADOW);
     }
 
-    public static void slot(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+    public static void slot(Gfx g, int x, int y, int w, int h) {
         int r = x + w;
         int b = y + h;
         g.fill(x, y, r, b, SLOT_FACE);

@@ -1,7 +1,7 @@
 package com.wrapped.gui;
 
+import com.wrapped.compat.Gfx;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix3x2fStack;
 
@@ -71,7 +71,7 @@ final class StageDraw {
     }
 
     static void slot(StageFrame f, Rect r) {
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         Panels.slot(g, r.x(), r.y(), r.w(), r.h());
         int x = r.x();
         int y = r.y();
@@ -96,7 +96,7 @@ final class StageDraw {
         int boxH = th + frame;
         int left = -boxW / 2;
         int top = -boxH / 2;
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         Matrix3x2fStack pose = g.pose();
         pose.pushMatrix();
         pose.translate(cx, cy);
@@ -117,7 +117,7 @@ final class StageDraw {
         if (n <= 0) {
             return;
         }
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         Rect bar = StageLayout.progress(f.w());
         int span = bar.w() + PROGRESS_GAP;
         int current = f.view().index();
@@ -149,7 +149,7 @@ final class StageDraw {
     }
 
     static void particles(StageFrame f, Particles p) {
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         p.each((px, py, size, base, life) -> {
             int alpha = Math.round((base >>> 24) * Math.max(0f, Math.min(1f, life)));
             if (alpha <= 0) {
@@ -162,7 +162,7 @@ final class StageDraw {
     }
 
     static void wipe(StageFrame f, BlockWipe wipe) {
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         int cell = Math.max(24, Math.min(f.w(), f.h()) / 8);
         int cols = (f.w() + cell - 1) / cell + 1;
         int rows = (f.h() + cell - 1) / cell + 1;

@@ -1,14 +1,13 @@
 package com.wrapped.gui;
 
 import com.wrapped.cards.Card;
+import com.wrapped.compat.Gfx;
 import com.wrapped.gui.StageKit.Hero;
 import com.wrapped.gui.StageKit.Part;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
@@ -102,7 +101,7 @@ final class HookCards {
             ly += StageKit.LINE * qs;
         }
         Optional<Integer> pick = f.view().guessPick();
-        GuiGraphicsExtractor g = f.g();
+        Gfx g = f.g();
         for (int i = 0; i < slots.size(); i++) {
             int option = c.options().get(i);
             Rect r = slots.get(i);
@@ -192,7 +191,7 @@ final class HookCards {
         Font font = f.font();
         boolean hover = StageKit.hovered(f, r);
         Identifier sprite = active ? (hover ? TAB_SELECTED_HOVER : TAB_SELECTED) : (hover ? TAB_HOVER : TAB);
-        f.g().blitSprite(RenderPipelines.GUI_TEXTURED, sprite, r.x(), r.y(), r.w(), r.h());
+        f.g().blitSprite(sprite, r.x(), r.y(), r.w(), r.h());
         String t = StageLayout.fitText(text, Math.max(1, r.w() - 6), font::width);
         int tx = r.x() + (r.w() - font.width(t)) / 2;
         int ty = r.y() + (r.h() - 8) / 2;
@@ -202,7 +201,7 @@ final class HookCards {
         }
     }
 
-    private static void outline(GuiGraphicsExtractor g, Rect r) {
+    private static void outline(Gfx g, Rect r) {
         int x0 = r.x();
         int y0 = r.y();
         int x1 = r.x() + r.w();

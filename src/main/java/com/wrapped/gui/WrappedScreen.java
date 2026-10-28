@@ -3,6 +3,8 @@ package com.wrapped.gui;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.wrapped.cards.Card;
 import com.wrapped.compat.Compat;
+import com.wrapped.compat.CompatScreen;
+import com.wrapped.compat.Gfx;
 import com.wrapped.gui.CardTiming.Cue;
 import com.wrapped.store.Settings;
 import java.nio.file.Path;
@@ -15,7 +17,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -23,7 +24,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import org.joml.Matrix3x2fStack;
 
-public class WrappedScreen extends Screen {
+public class WrappedScreen extends CompatScreen {
     private static final String LOADING = "Reading your history...";
     private static final String EMPTY = "Nothing to show yet";
     private static final String HINT = "Click or press space";
@@ -198,7 +199,7 @@ public class WrappedScreen extends Screen {
         return controller.wipe().isEmpty();
     }
 
-    private StageFrame frame(GuiGraphicsExtractor g, int mx, int my, long now, boolean exporting) {
+    private StageFrame frame(Gfx g, int mx, int my, long now, boolean exporting) {
         boolean hasPrevious = loaded != null && YearPicker.previous(loaded.years(), year).isPresent();
         boolean hasNext = loaded != null && YearPicker.next(loaded.years(), year).isPresent();
         long elapsed = exporting ? AT_REST : controller.elapsed(now);
@@ -209,12 +210,12 @@ public class WrappedScreen extends Screen {
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+    protected void drawBackground(Gfx g, int mouseX, int mouseY, float delta) {
         Compat.extractSubtitles(minecraft);
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+    protected void draw(Gfx g, int mouseX, int mouseY, float delta) {
         poll();
         grabCapture();
         long now = now();
@@ -269,7 +270,7 @@ public class WrappedScreen extends Screen {
         controller.wipe().ifPresent(w -> StageDraw.wipe(f, w));
     }
 
-    private void message(GuiGraphicsExtractor g, long now, String text) {
+    private void message(Gfx g, long now, String text) {
         StageBackground.draw(g, World.GRASS, width, height, now, !reduceMotion());
         Rect c = StageLayout.content(width, height);
         int scale = font.width(text) * 2 <= c.w() ? 2 : 1;
@@ -361,7 +362,7 @@ public class WrappedScreen extends Screen {
         }
     }
 
-    private void drawCapture(GuiGraphicsExtractor g, Card card, long now) {
+    private void drawCapture(Gfx g, Card card, long now) {
         StageFrame f = frame(g, -1, -1, now, true);
         StageBackground.draw(g, World.of(card), width, height, now, false);
         StageRenderer.render(f, card);

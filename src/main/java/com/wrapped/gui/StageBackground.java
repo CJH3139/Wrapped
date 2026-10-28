@@ -1,8 +1,7 @@
 package com.wrapped.gui;
 
+import com.wrapped.compat.Gfx;
 import java.util.Random;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2fStack;
 
@@ -36,7 +35,7 @@ final class StageBackground {
         return at;
     }
 
-    static void draw(GuiGraphicsExtractor g, World world, int w, int h, long nowMs, boolean drift) {
+    static void draw(Gfx g, World world, int w, int h, long nowMs, boolean drift) {
         if (world.texture() == null) {
             sky(g, w, h, nowMs, drift);
             return;
@@ -49,7 +48,7 @@ final class StageBackground {
         vignette(g, w, h);
     }
 
-    private static void tiles(GuiGraphicsExtractor g, World world, int w, int h, long nowMs, boolean drift) {
+    private static void tiles(Gfx g, World world, int w, int h, long nowMs, boolean drift) {
         Identifier texture = world.textureId();
         int tile = Ease.tileSize(w, h);
         float[] origin = Ease.tileOrigin(nowMs, tile, drift);
@@ -58,14 +57,14 @@ final class StageBackground {
         pose.translate(origin[0], origin[1]);
         for (int x = 0; x < w + tile; x += tile) {
             for (int y = 0; y < h + tile; y += tile) {
-                g.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, 0f, 0f, tile, tile, 16, 16, 16, 16,
+                g.blit(texture, x, y, 0f, 0f, tile, tile, 16, 16, 16, 16,
                         world.textureTint());
             }
         }
         pose.popMatrix();
     }
 
-    private static void rays(GuiGraphicsExtractor g, int w, int h, long nowMs) {
+    private static void rays(Gfx g, int w, int h, long nowMs) {
         int length = Math.max(w, h);
         double spread = length * 0.12;
         float base = (float) (2 * Math.PI * (nowMs % RAY_TURN_MS) / RAY_TURN_MS);
@@ -86,7 +85,7 @@ final class StageBackground {
         }
     }
 
-    private static void vignette(GuiGraphicsExtractor g, int w, int h) {
+    private static void vignette(Gfx g, int w, int h) {
         int t = Math.max(1, Math.round(Math.min(w, h) * 0.12f));
         g.fillGradient(0, 0, w, t, VIGNETTE_EDGE, CLEAR);
         g.fillGradient(0, h - t, w, h, CLEAR, VIGNETTE_EDGE);
@@ -103,7 +102,7 @@ final class StageBackground {
         pose.popMatrix();
     }
 
-    private static void sky(GuiGraphicsExtractor g, int w, int h, long nowMs, boolean drift) {
+    private static void sky(Gfx g, int w, int h, long nowMs, boolean drift) {
         int mid = h / 2;
         g.fillGradient(0, 0, w, mid, SKY_TOP, SKY_MID);
         g.fillGradient(0, mid, w, h, SKY_MID, SKY_BOTTOM);
