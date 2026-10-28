@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 final class CardExporter {
     private static final System.Logger LOGGER = System.getLogger("wrapped");
@@ -59,7 +58,7 @@ final class CardExporter {
             Files.createDirectories(dir);
             Compat.writePng(out, ExportImage.WIDTH, ExportImage.HEIGHT, file);
             STARTED.set(0);
-            Compat.showChat(client, Component.literal("Saved Wrapped card as ").append(Compat.fileLink(file)));
+            Compat.showSaved(client, "Saved Wrapped card as ", file);
         } catch (IOException | RuntimeException e) {
             fail(client, file, e);
         }
@@ -68,6 +67,6 @@ final class CardExporter {
     private static void fail(Minecraft client, Path file, Exception e) {
         STARTED.set(0);
         LOGGER.log(Level.WARNING, "Could not save " + file, e);
-        Compat.showChat(client, Component.literal("Could not save Wrapped card"));
+        Compat.showMessage(client, "Could not save Wrapped card");
     }
 }

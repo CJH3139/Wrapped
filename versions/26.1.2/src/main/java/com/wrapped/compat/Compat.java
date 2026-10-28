@@ -1,5 +1,6 @@
 package com.wrapped.compat;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -9,6 +10,7 @@ import java.util.concurrent.Executor;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -21,20 +23,36 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.LevelResource;
 
 public final class Compat {
+    public static final int KEY_K = InputConstants.KEY_K;
+    public static final int KEY_SPACE = InputConstants.KEY_SPACE;
+    public static final int KEY_LEFT = InputConstants.KEY_LEFT;
+    public static final int KEY_RIGHT = InputConstants.KEY_RIGHT;
+    public static final int MOUSE_LEFT = InputConstants.MOUSE_BUTTON_LEFT;
+
     public record Pixels(int[] argb, int width, int height) {
     }
 
     private Compat() {
     }
 
+    public static KeyMapping key(String name, int code, String modId) {
+        return new KeyMapping(name, code, KeyMapping.Category.register(Identifier.fromNamespaceAndPath(modId, modId)));
+    }
+
     public static void registerKey(KeyMapping key) {
         KeyMappingHelper.registerKeyMapping(key);
+    }
+
+    public static void onConnection(Consumer<Minecraft> joined, Runnable left) {
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> joined.accept(client));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> left.run());
     }
 
     public static Screen screen(Minecraft client) {
@@ -45,12 +63,25 @@ public final class Compat {
         client.setScreen(screen);
     }
 
-    public static void playUi(SoundEvent sound, float pitch) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch));
+    private static SoundEvent sound(UiSound sound) {
+        return switch (sound) {
+            case BASEDRUM -> SoundEvents.NOTE_BLOCK_BASEDRUM.value();
+            case PLING -> SoundEvents.NOTE_BLOCK_PLING.value();
+            case BLAST -> SoundEvents.FIREWORK_ROCKET_BLAST;
+            case LARGE_BLAST -> SoundEvents.FIREWORK_ROCKET_LARGE_BLAST;
+            case TWINKLE -> SoundEvents.FIREWORK_ROCKET_TWINKLE;
+            case LEVELUP -> SoundEvents.PLAYER_LEVELUP;
+            case CHIME -> SoundEvents.AMETHYST_BLOCK_CHIME;
+            case CHALLENGE -> SoundEvents.UI_TOAST_CHALLENGE_COMPLETE;
+            case ORB -> SoundEvents.EXPERIENCE_ORB_PICKUP;
+            case SWEEP -> SoundEvents.PLAYER_ATTACK_SWEEP;
+            case CRIT -> SoundEvents.PLAYER_ATTACK_CRIT;
+            case CLICK -> SoundEvents.UI_BUTTON_CLICK.value();
+        };
     }
 
-    public static void playUi(SoundEvent sound, float pitch, float volume) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch, volume));
+    public static void playUi(UiSound sound, float pitch, float volume) {
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound(sound), pitch, volume));
     }
 
     public static ItemStack redBed() {
@@ -117,12 +148,17 @@ public final class Compat {
         }
     }
 
-    public static Component fileLink(Path file) {
-        return Component.literal(file.getFileName().toString()).withStyle(ChatFormatting.UNDERLINE)
+    public static void showSaved(Minecraft client, String prefix, Path file) {
+        Component link = Component.literal(file.getFileName().toString()).withStyle(ChatFormatting.UNDERLINE)
                 .withStyle(style -> style.withClickEvent(new ClickEvent.OpenFile(file.toAbsolutePath().toFile())));
+        show(client, Component.literal(prefix).append(link));
     }
 
-    public static void showChat(Minecraft client, Component message) {
+    public static void showMessage(Minecraft client, String text) {
+        show(client, Component.literal(text));
+    }
+
+    private static void show(Minecraft client, Component message) {
         client.execute(() -> client.gui.getChat().addClientSystemMessage(message));
     }
 }

@@ -1,22 +1,16 @@
 package com.wrapped;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.wrapped.compat.Compat;
 import com.wrapped.gui.WrappedScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.Identifier;
 
 public final class WrappedClient implements ClientModInitializer {
     public static final String MOD_ID = "wrapped";
 
-    public static final KeyMapping OPEN = new KeyMapping(
-            "key.wrapped.open",
-            InputConstants.KEY_K,
-            KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "wrapped")));
+    public static final KeyMapping OPEN = Compat.key("key.wrapped.open", Compat.KEY_K, MOD_ID);
 
     private static long ticks;
 
@@ -35,7 +29,6 @@ public final class WrappedClient implements ClientModInitializer {
                 }
             }
         });
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> WrappedState.onJoin(client));
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> WrappedState.onDisconnect());
+        Compat.onConnection(WrappedState::onJoin, WrappedState::onDisconnect);
     }
 }

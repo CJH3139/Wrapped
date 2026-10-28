@@ -4,9 +4,6 @@ import com.wrapped.compat.Compat;
 import com.wrapped.compat.CompatScreen;
 import com.wrapped.compat.Gfx;
 import java.util.function.Consumer;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 
 public final class MergePrompt extends CompatScreen {
     static final String QUESTION = "Add this instance to your Total?";
@@ -16,11 +13,11 @@ public final class MergePrompt extends CompatScreen {
     private static final int PAD = 8;
     private static final int BUTTON_H = 20;
 
-    private final Screen parent;
+    private final CompatScreen parent;
     private final Consumer<Boolean> answer;
 
-    public MergePrompt(Screen parent, Consumer<Boolean> answer) {
-        super(Component.literal(QUESTION));
+    public MergePrompt(CompatScreen parent, Consumer<Boolean> answer) {
+        super(QUESTION);
         this.parent = parent;
         this.answer = answer;
     }
@@ -42,10 +39,8 @@ public final class MergePrompt extends CompatScreen {
         int w = panelW();
         int half = (w - 2 * PAD - CardDraw.GAP) / 2;
         int by = panelY() + PANEL_H - PAD - BUTTON_H;
-        addRenderableWidget(Button.builder(Component.literal("Yes"), b -> choose(true))
-                .bounds(panelX() + PAD, by, half, BUTTON_H).build());
-        addRenderableWidget(Button.builder(Component.literal("No"), b -> choose(false))
-                .bounds(panelX() + w - PAD - half, by, half, BUTTON_H).build());
+        addButton("Yes", panelX() + PAD, by, half, BUTTON_H, () -> choose(true));
+        addButton("No", panelX() + w - PAD - half, by, half, BUTTON_H, () -> choose(false));
     }
 
     private void choose(boolean yes) {

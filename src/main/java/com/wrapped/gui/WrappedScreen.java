@@ -1,10 +1,10 @@
 package com.wrapped.gui;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.wrapped.cards.Card;
 import com.wrapped.compat.Compat;
 import com.wrapped.compat.CompatScreen;
 import com.wrapped.compat.Gfx;
+import com.wrapped.compat.UiSound;
 import com.wrapped.gui.CardTiming.Cue;
 import com.wrapped.store.Settings;
 import java.nio.file.Path;
@@ -17,12 +17,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import org.joml.Matrix3x2fStack;
 
 public class WrappedScreen extends CompatScreen {
     private static final String LOADING = "Reading your history...";
@@ -75,7 +69,7 @@ public class WrappedScreen extends CompatScreen {
 
     public WrappedScreen(Supplier<Optional<WrappedData>> data, BooleanSupplier askMerge,
             Consumer<Boolean> answerMerge) {
-        super(Component.literal("Wrapped"));
+        super("Wrapped");
         this.data = data;
         this.askMerge = askMerge;
         this.answerMerge = answerMerge;
@@ -148,7 +142,7 @@ public class WrappedScreen extends CompatScreen {
         }
     }
 
-    public Screen opening() {
+    public CompatScreen opening() {
         if (!mergeAsked && askMerge.getAsBoolean()) {
             mergeAsked = true;
             restartTitle = true;
@@ -171,6 +165,7 @@ public class WrappedScreen extends CompatScreen {
     @Override
     public void tick() {
         super.tick();
+        grabCapture();
         poll();
         if (mergePending()) {
             mergeAsked = true;
@@ -217,7 +212,6 @@ public class WrappedScreen extends CompatScreen {
     @Override
     protected void draw(Gfx g, int mouseX, int mouseY, float delta) {
         poll();
-        grabCapture();
         long now = now();
         sync(now);
         long dt = lastFrame < 0 ? 0 : Math.max(0, Math.min(MAX_STEP_MS, now - lastFrame));
@@ -230,7 +224,7 @@ public class WrappedScreen extends CompatScreen {
             return;
         }
         Card card = current.get();
-        if (capture == Capture.DRAW) {
+        if (capture != Capture.NONE) {
             if (card instanceof Card.Summary) {
                 drawCapture(g, card, now);
                 capture = Capture.GRAB;
@@ -244,10 +238,10 @@ public class WrappedScreen extends CompatScreen {
             play(f, card, cue, now);
         }
         queued.clear();
-        controller.tick(now).ifPresent(p -> Compat.playUi(SoundEvents.EXPERIENCE_ORB_PICKUP, (float) p, TICK_VOLUME));
+        controller.tick(now).ifPresent(p -> Compat.playUi(UiSound.ORB, (float) p, TICK_VOLUME));
         boolean wipeNow = controller.wipe().isPresent();
         if (wipeNow && !wiping) {
-            Compat.playUi(SoundEvents.PLAYER_ATTACK_SWEEP, WHOOSH_PITCH, WHOOSH_VOLUME);
+            Compat.playUi(UiSound.SWEEP, WHOOSH_PITCH, WHOOSH_VOLUME);
         }
         wiping = wipeNow;
         boolean motion = !reduceMotion();
@@ -258,11 +252,11 @@ public class WrappedScreen extends CompatScreen {
         }
         StageBackground.draw(g, World.of(card), width, height, now, motion);
         Shake.Offset offset = motion ? shake.offset(now, Compat.screenEffectScale(minecraft)) : new Shake.Offset(0, 0);
-        Matrix3x2fStack pose = g.pose();
-        pose.pushMatrix();
+        Gfx pose = g;
+        pose.push();
         pose.translate(offset.x(), offset.y());
         StageRenderer.render(f, card);
-        pose.popMatrix();
+        pose.pop();
         if (motion) {
             StageDraw.particles(f, particles);
         }
@@ -276,12 +270,12 @@ public class WrappedScreen extends CompatScreen {
         int scale = font.width(text) * 2 <= c.w() ? 2 : 1;
         String t = StageLayout.fitText(text, Math.max(1, c.w() / scale), font::width);
         int tw = font.width(t) * scale;
-        Matrix3x2fStack pose = g.pose();
-        pose.pushMatrix();
+        Gfx pose = g;
+        pose.push();
         pose.translate(c.x() + (c.w() - tw) / 2f, c.y() + (c.h() - StageDraw.LINE * scale) / 2f);
         pose.scale(scale, scale);
         g.text(font, t, 0, 0, StageDraw.WHITE, true);
-        pose.popMatrix();
+        pose.pop();
     }
 
     private void chrome(StageFrame f, Card card) {
@@ -330,35 +324,35 @@ public class WrappedScreen extends CompatScreen {
     private static void sound(Cue cue) {
         switch (cue.sound()) {
             case THUD -> {
-                Compat.playUi(SoundEvents.NOTE_BLOCK_BASEDRUM.value(), 0.8f, 1.0f);
-                Compat.playUi(SoundEvents.NOTE_BLOCK_PLING.value(), note(0.7f, cue.index()), 0.7f);
+                Compat.playUi(UiSound.BASEDRUM, 0.8f, 1.0f);
+                Compat.playUi(UiSound.PLING, note(0.7f, cue.index()), 0.7f);
                 if (cue.landing()) {
-                    Compat.playUi(SoundEvents.FIREWORK_ROCKET_BLAST, 1.0f, 0.6f);
+                    Compat.playUi(UiSound.BLAST, 1.0f, 0.6f);
                 }
             }
             case CHIME -> {
-                Compat.playUi(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
-                Compat.playUi(SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 1.0f, 0.8f);
-                Compat.playUi(SoundEvents.FIREWORK_ROCKET_TWINKLE, 1.0f, 0.6f);
-                Compat.playUi(SoundEvents.AMETHYST_BLOCK_CHIME, 1.2f, 1.0f);
+                Compat.playUi(UiSound.LEVELUP, 1.0f, 1.0f);
+                Compat.playUi(UiSound.LARGE_BLAST, 1.0f, 0.8f);
+                Compat.playUi(UiSound.TWINKLE, 1.0f, 0.6f);
+                Compat.playUi(UiSound.CHIME, 1.2f, 1.0f);
             }
             case FANFARE -> {
-                Compat.playUi(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
-                Compat.playUi(SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 1.0f, 0.8f);
+                Compat.playUi(UiSound.CHALLENGE, 1.0f, 1.0f);
+                Compat.playUi(UiSound.LARGE_BLAST, 1.0f, 0.8f);
             }
             case FIREWORK -> {
-                Compat.playUi(SoundEvents.FIREWORK_ROCKET_BLAST, 1.0f, 0.8f);
-                Compat.playUi(SoundEvents.FIREWORK_ROCKET_TWINKLE, 1.1f, 0.6f);
+                Compat.playUi(UiSound.BLAST, 1.0f, 0.8f);
+                Compat.playUi(UiSound.TWINKLE, 1.1f, 0.6f);
             }
             case LIGHT -> {
-                Compat.playUi(SoundEvents.NOTE_BLOCK_PLING.value(), note(0.9f, cue.index()), 0.8f);
-                Compat.playUi(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.2f, 0.6f);
+                Compat.playUi(UiSound.PLING, note(0.9f, cue.index()), 0.8f);
+                Compat.playUi(UiSound.ORB, 1.2f, 0.6f);
             }
             case HIT -> {
-                Compat.playUi(SoundEvents.PLAYER_ATTACK_CRIT, 1.0f, 0.9f);
-                Compat.playUi(SoundEvents.NOTE_BLOCK_PLING.value(), note(0.8f, cue.index()), 0.5f);
+                Compat.playUi(UiSound.CRIT, 1.0f, 0.9f);
+                Compat.playUi(UiSound.PLING, note(0.8f, cue.index()), 0.5f);
             }
-            case CLICK -> Compat.playUi(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.0f);
+            case CLICK -> Compat.playUi(UiSound.CLICK, 1.0f, 1.0f);
         }
     }
 
@@ -389,7 +383,7 @@ public class WrappedScreen extends CompatScreen {
     }
 
     private static void click() {
-        Compat.playUi(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f);
+        Compat.playUi(UiSound.CLICK, 1.0f, 1.0f);
     }
 
     private boolean control(Card card, double mx, double my, long now) {
@@ -403,42 +397,36 @@ public class WrappedScreen extends CompatScreen {
             click();
             return true;
         }
-        switch (card) {
-            case Card.Title c -> {
-                Optional<Control> hit = titleHit(c, mx, my);
-                hit.ifPresent(this::titleControl);
-                return hit.isPresent();
-            }
-            case Card.Guess c -> {
-                if (controller.guessPick().isPresent() || c.options().isEmpty()) {
-                    return false;
-                }
-                List<Rect> slots = StageLayout.guessSlots(width, height, c.options().size());
-                for (int i = 0; i < slots.size(); i++) {
-                    if (slots.get(i).contains(mx, my)) {
-                        controller.pickGuess(c.options().get(i), now);
-                        return true;
-                    }
-                }
+        if (card instanceof Card.Title c) {
+            Optional<Control> hit = titleHit(c, mx, my);
+            hit.ifPresent(this::titleControl);
+            return hit.isPresent();
+        } else if (card instanceof Card.Guess c) {
+            if (controller.guessPick().isPresent() || c.options().isEmpty()) {
                 return false;
             }
-            case Card.ChatCard c -> {
-                if (c.topWord().isPresent() && StageLayout.hideWord(width, height).contains(mx, my)) {
-                    toggleHideWord();
+            List<Rect> slots = StageLayout.guessSlots(width, height, c.options().size());
+            for (int i = 0; i < slots.size(); i++) {
+                if (slots.get(i).contains(mx, my)) {
+                    controller.pickGuess(c.options().get(i), now);
                     return true;
                 }
-                return false;
             }
-            case Card.Summary c -> {
-                if (StageLayout.shareSave(StageLayout.shareCard(width, height)).contains(mx, my)) {
-                    requestSave();
-                    return true;
-                }
-                return false;
+            return false;
+        } else if (card instanceof Card.ChatCard c) {
+            if (c.topWord().isPresent() && StageLayout.hideWord(width, height).contains(mx, my)) {
+                toggleHideWord();
+                return true;
             }
-            default -> {
-                return false;
+            return false;
+        } else if (card instanceof Card.Summary c) {
+            if (StageLayout.shareSave(StageLayout.shareCard(width, height)).contains(mx, my)) {
+                requestSave();
+                return true;
             }
+            return false;
+        } else {
+            return false;
         }
     }
 
@@ -498,11 +486,8 @@ public class WrappedScreen extends CompatScreen {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
-        if (super.mouseClicked(click, doubled)) {
-            return true;
-        }
-        if (loaded == null || mergePending() || click.button() != InputConstants.MOUSE_BUTTON_LEFT) {
+    protected boolean onClick(double x, double y, int button) {
+        if (loaded == null || mergePending() || button != Compat.MOUSE_LEFT) {
             return false;
         }
         long now = now();
@@ -511,10 +496,10 @@ public class WrappedScreen extends CompatScreen {
         if (card.isEmpty()) {
             return true;
         }
-        if (live() && control(card.get(), click.x(), click.y(), now)) {
+        if (live() && control(card.get(), x, y, now)) {
             return true;
         }
-        if (click.x() < width / 4.0) {
+        if (x < width / 4.0) {
             controller.back(now);
         } else {
             controller.next(now);
@@ -523,22 +508,21 @@ public class WrappedScreen extends CompatScreen {
     }
 
     @Override
-    public boolean keyPressed(KeyEvent input) {
+    protected boolean onKey(int key) {
         if (loaded != null && !mergePending()) {
-            int key = input.key();
-            if (key == InputConstants.KEY_SPACE || key == InputConstants.KEY_RIGHT) {
+            if (key == Compat.KEY_SPACE || key == Compat.KEY_RIGHT) {
                 long now = now();
                 sync(now);
                 controller.next(now);
                 return true;
             }
-            if (key == InputConstants.KEY_LEFT) {
+            if (key == Compat.KEY_LEFT) {
                 long now = now();
                 sync(now);
                 controller.back(now);
                 return true;
             }
         }
-        return super.keyPressed(input);
+        return false;
     }
 }

@@ -1,9 +1,8 @@
 package com.wrapped.gui;
 
 import com.wrapped.compat.Gfx;
+import com.wrapped.compat.Tex;
 import java.util.Random;
-import net.minecraft.resources.Identifier;
-import org.joml.Matrix3x2fStack;
 
 final class StageBackground {
     private static final int VIGNETTE_EDGE = 0x59000000;
@@ -49,11 +48,11 @@ final class StageBackground {
     }
 
     private static void tiles(Gfx g, World world, int w, int h, long nowMs, boolean drift) {
-        Identifier texture = world.textureId();
+        Tex texture = world.textureId();
         int tile = Ease.tileSize(w, h);
         float[] origin = Ease.tileOrigin(nowMs, tile, drift);
-        Matrix3x2fStack pose = g.pose();
-        pose.pushMatrix();
+        Gfx pose = g;
+        pose.push();
         pose.translate(origin[0], origin[1]);
         for (int x = 0; x < w + tile; x += tile) {
             for (int y = 0; y < h + tile; y += tile) {
@@ -61,16 +60,16 @@ final class StageBackground {
                         world.textureTint());
             }
         }
-        pose.popMatrix();
+        pose.pop();
     }
 
     private static void rays(Gfx g, int w, int h, long nowMs) {
         int length = Math.max(w, h);
         double spread = length * 0.12;
         float base = (float) (2 * Math.PI * (nowMs % RAY_TURN_MS) / RAY_TURN_MS);
-        Matrix3x2fStack pose = g.pose();
+        Gfx pose = g;
         for (int i = 0; i < RAYS; i++) {
-            pose.pushMatrix();
+            pose.push();
             pose.translate(w / 2f, h * 0.42f);
             pose.rotate(base + (float) (i * 2 * Math.PI / RAYS));
             for (int k = 0; k < RAY_STEPS; k++) {
@@ -81,7 +80,7 @@ final class StageBackground {
                     g.fill(x0, -half, x1, half, RAY);
                 }
             }
-            pose.popMatrix();
+            pose.pop();
         }
     }
 
@@ -89,17 +88,17 @@ final class StageBackground {
         int t = Math.max(1, Math.round(Math.min(w, h) * 0.12f));
         g.fillGradient(0, 0, w, t, VIGNETTE_EDGE, CLEAR);
         g.fillGradient(0, h - t, w, h, CLEAR, VIGNETTE_EDGE);
-        Matrix3x2fStack pose = g.pose();
-        pose.pushMatrix();
+        Gfx pose = g;
+        pose.push();
         pose.translate(t, 0);
         pose.rotate((float) (Math.PI / 2));
         g.fillGradient(0, 0, h, t, CLEAR, VIGNETTE_EDGE);
-        pose.popMatrix();
-        pose.pushMatrix();
+        pose.pop();
+        pose.push();
         pose.translate(w - t, h);
         pose.rotate((float) (-Math.PI / 2));
         g.fillGradient(0, 0, h, t, CLEAR, VIGNETTE_EDGE);
-        pose.popMatrix();
+        pose.pop();
     }
 
     private static void sky(Gfx g, int w, int h, long nowMs, boolean drift) {

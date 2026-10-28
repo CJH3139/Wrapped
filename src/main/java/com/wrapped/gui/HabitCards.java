@@ -155,25 +155,21 @@ final class HabitCards {
     }
 
     static Optional<float[]> anchor(StageFrame f, Card card, Anchor anchor, int index) {
-        return switch (card) {
-            case Card.PlayTime c -> {
-                Rect content = StageKit.content(f);
-                yield Optional.of(new float[] {content.x() + content.w() / 2f, playLayout(f, c).stampCy()});
+        if (card instanceof Card.PlayTime c) {
+            Rect content = StageKit.content(f);
+            return Optional.of(new float[] {content.x() + content.w() / 2f, playLayout(f, c).stampCy()});
+        } else if (card instanceof Card.Streak c) {
+            Hero h = streakLayout(f, c);
+            return Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, StageKit.heroNumber(f, h, BIG, c.days())));
+        } else if (card instanceof Card.ChatCard c) {
+            Hero h = chatLayout(f, c);
+            if (anchor == Anchor.STAMP && c.topWord().isPresent()) {
+                return Optional.of(stampCenter(f, h, c));
             }
-            case Card.Streak c -> {
-                Hero h = streakLayout(f, c);
-                yield Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, StageKit.heroNumber(f, h, BIG, c.days())));
-            }
-            case Card.ChatCard c -> {
-                Hero h = chatLayout(f, c);
-                if (anchor == Anchor.STAMP && c.topWord().isPresent()) {
-                    yield Optional.of(stampCenter(f, h, c));
-                }
-                yield Optional.of(StageKit.heroBigCenter(f, h, BIG, 0,
-                        StageKit.heroNumber(f, h, BIG, c.messagesSent())));
-            }
-            default -> Optional.empty();
-        };
+            return Optional.of(StageKit.heroBigCenter(f, h, BIG, 0,
+                    StageKit.heroNumber(f, h, BIG, c.messagesSent())));
+        }
+        return Optional.empty();
     }
 
     private static PlayLayout playLayout(StageFrame f, Card.PlayTime c) {

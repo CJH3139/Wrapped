@@ -2,3 +2,5 @@ build/
 .gradle/
 run/
 design/
+run-selftest/
+fabricloader.log

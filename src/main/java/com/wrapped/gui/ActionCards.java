@@ -137,33 +137,28 @@ final class ActionCards {
     }
 
     static Optional<float[]> anchor(StageFrame f, Card card, Anchor anchor, int index) {
-        return switch (card) {
-            case Card.Blocks c -> {
-                Hero h = blocksLayout(f, c);
-                int k = c.mined() >= c.placed() ? 0 : 1;
-                long v = k == 0 ? c.mined() : c.placed();
-                yield Optional.of(StageKit.heroBigCenter(f, h, BIG, k, StageKit.heroNumber(f, h, BIG, v)));
+        if (card instanceof Card.Blocks c) {
+            Hero h = blocksLayout(f, c);
+            int k = c.mined() >= c.placed() ? 0 : 1;
+            long v = k == 0 ? c.mined() : c.placed();
+            return Optional.of(StageKit.heroBigCenter(f, h, BIG, k, StageKit.heroNumber(f, h, BIG, v)));
+        } else if (card instanceof Card.Fights c) {
+            FightLayout l = fightLayout(f, c);
+            if (l.boxes().isEmpty()) {
+                return Optional.of(StageKit.center(f));
             }
-            case Card.Fights c -> {
-                FightLayout l = fightLayout(f, c);
-                if (l.boxes().isEmpty()) {
-                    yield Optional.of(StageKit.center(f));
-                }
-                Rect r = l.boxes().get(Math.max(0, Math.min(l.boxes().size() - 1, index)));
-                yield Optional.of(new float[] {r.x() + r.w() / 2f, r.y() + r.h() / 2f});
-            }
-            case Card.Type c -> {
-                String name = typeName(c.playerType());
-                Stamp st = typeStamp(f, name);
-                Hero h = typeLayout(f, c, st);
-                yield Optional.of(new float[] {h.cx(), h.y()[1] + st.boundH() / 2f});
-            }
-            case Card.Summary c -> {
-                Rect r = StageLayout.shareCard(f.w(), f.h());
-                yield Optional.of(new float[] {r.x() + r.w() / 2f, r.y() + r.h() / 2f});
-            }
-            default -> Optional.empty();
-        };
+            Rect r = l.boxes().get(Math.max(0, Math.min(l.boxes().size() - 1, index)));
+            return Optional.of(new float[] {r.x() + r.w() / 2f, r.y() + r.h() / 2f});
+        } else if (card instanceof Card.Type c) {
+            String name = typeName(c.playerType());
+            Stamp st = typeStamp(f, name);
+            Hero h = typeLayout(f, c, st);
+            return Optional.of(new float[] {h.cx(), h.y()[1] + st.boundH() / 2f});
+        } else if (card instanceof Card.Summary c) {
+            Rect r = StageLayout.shareCard(f.w(), f.h());
+            return Optional.of(new float[] {r.x() + r.w() / 2f, r.y() + r.h() / 2f});
+        }
+        return Optional.empty();
     }
 
     static String typeName(PlayerType type) {

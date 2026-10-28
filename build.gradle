@@ -6,9 +6,11 @@ plugins {
 subprojects {
     def obfuscated = project.findProperty('obfuscated') == 'true'
     def javaVersion = (project.findProperty('java_version') ?: '25') as int
+    def mcVersion = project.findProperty("mc_${project.name}") ?: project.minecraft_version
+    def fabricVersion = project.findProperty("fabric_${project.name}") ?: project.fabric_version
     apply plugin: obfuscated ? 'net.fabricmc.fabric-loom-remap' : 'net.fabricmc.fabric-loom'
 
-    version = "${rootProject.mod_version}+${project.minecraft_version}"
+    version = "${rootProject.mod_version}+${project.findProperty('version_label') ?: project.minecraft_version}"
     group = rootProject.maven_group
 
     base {
@@ -28,20 +30,51 @@ subprojects {
             java.srcDirs = [rootProject.file('src/test/java')]
             resources.srcDirs = [rootProject.file('src/test/resources')]
         }
+        selftest {
+            java.srcDirs = [rootProject.file('src/selftest/java'), file('src/selftest/java')]
+            resources.srcDirs = [rootProject.file('src/selftest/resources')]
+            compileClasspath += main.output + main.compileClasspath
+            runtimeClasspath += main.output + main.runtimeClasspath
+        }
+    }
+
+    loom {
+        mods {
+            wrapped {
+                sourceSet sourceSets.main
+            }
+            wrapped_selftest {
+                sourceSet sourceSets.selftest
+            }
+        }
+        runs {
+            selftest {
+                client()
+                configName = "Wrapped self-test"
+                ideConfigGenerated false
+                source sourceSets.selftest
+                runDir "run-selftest"
+                property "wrapped.selftest.out", file("build/selftest").absolutePath
+                programArgs "--width", "1280", "--height", "720"
+                environmentVariable "APPDATA", file("run-selftest/appdata").absolutePath
+            }
+        }
     }
 
     dependencies {
-        minecraft "com.mojang:minecraft:${project.minecraft_version}"
+        minecraft "com.mojang:minecraft:${mcVersion}"
         if (obfuscated) {
             mappings loom.officialMojangMappings()
             modImplementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
-            modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+            modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricVersion}"
         } else {
             implementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
-            implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+            implementation "net.fabricmc.fabric-api:fabric-api:${fabricVersion}"
         }
 
-        testImplementation "net.fabricmc:fabric-loader-junit:${rootProject.loader_version}"
+        if (project.findProperty('test_loader') != 'false') {
+            testImplementation "net.fabricmc:fabric-loader-junit:${rootProject.loader_version}"
+        }
         testImplementation platform("org.junit:junit-bom:5.11.4")
         testImplementation "org.junit.jupiter:junit-jupiter"
         testRuntimeOnly "org.junit.platform:junit-platform-launcher"
@@ -49,7 +82,7 @@ subprojects {
 
     processResources {
         def props = [version: project.version, minecraft_dependency: project.minecraft_dependency,
-                java_dependency: ">=${javaVersion}"]
+                java_dependency: ">=${javaVersion}", fabric_api_id: project.findProperty('fabric_api_id') ?: 'fabric-api']
         inputs.properties props
         filesMatching("fabric.mod.json") {
             expand props

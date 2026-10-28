@@ -159,19 +159,18 @@ final class PlaceCards {
     }
 
     static Optional<float[]> anchor(StageFrame f, Card card, Anchor anchor, int index) {
-        return switch (card) {
-            case Card.ServerCount c -> {
-                Hero h = serverLayout(f, c);
-                yield Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, StageKit.heroNumber(f, h, BIG, c.count())));
-            }
-            case Card.Countdown c -> Optional.of(countdownAnchor(f, c, index));
-            case Card.TopServer c -> Optional.of(topAnchor(f, c, anchor));
-            case Card.LongestSession c -> {
-                Hero h = sessionLayout(f, c);
-                yield Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, Numbers.duration(c.duration())));
-            }
-            default -> Optional.empty();
-        };
+        if (card instanceof Card.ServerCount c) {
+            Hero h = serverLayout(f, c);
+            return Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, StageKit.heroNumber(f, h, BIG, c.count())));
+        } else if (card instanceof Card.Countdown c) {
+            return Optional.of(countdownAnchor(f, c, index));
+        } else if (card instanceof Card.TopServer c) {
+            return Optional.of(topAnchor(f, c, anchor));
+        } else if (card instanceof Card.LongestSession c) {
+            Hero h = sessionLayout(f, c);
+            return Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, Numbers.duration(c.duration())));
+        }
+        return Optional.empty();
     }
 
     private static float[] countdownAnchor(StageFrame f, Card.Countdown c, int index) {

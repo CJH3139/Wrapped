@@ -50,27 +50,24 @@ public final class SessionBuilder {
         }
         prev = t;
         now = date.atTime(t);
-        switch (event) {
-            case LogEvent.Chat chat -> {
-            }
-            case LogEvent.Leave leave -> close(now);
-            case LogEvent.GameStop stop -> {
-                close(now);
-                retryTarget = null;
-            }
-            case LogEvent.UserSet set -> {
-                close(now);
-                retryTarget = null;
-                account = set.name();
-            }
-            case LogEvent.ServerConnect connect -> connect(Session.Target.server(HostNormalizer.normalize(connect.host())));
-            case LogEvent.WorldJoin join -> {
-                close(now);
-                retryTarget = null;
-                openTarget = Session.Target.world();
-                openStart = now;
-                openAccount = account;
-            }
+        if (event instanceof LogEvent.Chat chat) {
+        } else if (event instanceof LogEvent.Leave leave) {
+            close(now);
+        } else if (event instanceof LogEvent.GameStop stop) {
+            close(now);
+            retryTarget = null;
+        } else if (event instanceof LogEvent.UserSet set) {
+            close(now);
+            retryTarget = null;
+            account = set.name();
+        } else if (event instanceof LogEvent.ServerConnect connect) {
+            connect(Session.Target.server(HostNormalizer.normalize(connect.host())));
+        } else if (event instanceof LogEvent.WorldJoin join) {
+            close(now);
+            retryTarget = null;
+            openTarget = Session.Target.world();
+            openStart = now;
+            openAccount = account;
         }
     }
 

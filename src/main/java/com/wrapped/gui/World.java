@@ -1,7 +1,7 @@
 package com.wrapped.gui;
 
 import com.wrapped.cards.Card;
-import net.minecraft.resources.Identifier;
+import com.wrapped.compat.Tex;
 
 enum World {
     GRASS("grass_block_top", 0xFF79C05A, 0x2E1E3C0A, 0xFF8B5E3C, 0xFF62A83E, 0xFFA0703F),
@@ -18,14 +18,14 @@ enum World {
     DIRT("dirt", 0xFFFFFFFF, 0x47281400, 0xFFFFD84A, 0xFF62A83E, 0xFFFFFFFF, 0xFFFF6B6B, 0xFFC6C6C6);
 
     private final String texture;
-    private final Identifier textureId;
+    private final Tex textureId;
     private final int textureTint;
     private final int overlay;
     private final int[] particles;
 
     World(String texture, int textureTint, int overlay, int... particles) {
         this.texture = texture;
-        this.textureId = texture == null ? null : Identifier.withDefaultNamespace("textures/block/" + texture + ".png");
+        this.textureId = texture == null ? null : Tex.of("textures/block/" + texture + ".png");
         this.textureTint = textureTint;
         this.overlay = overlay;
         this.particles = particles;
@@ -35,7 +35,7 @@ enum World {
         return texture;
     }
 
-    Identifier textureId() {
+    Tex textureId() {
         return textureId;
     }
 
@@ -52,21 +52,35 @@ enum World {
     }
 
     static World of(Card card) {
-        return switch (card) {
-            case Card.Title t -> GRASS;
-            case Card.Guess g -> STONE;
-            case Card.HoursReveal h -> GRASS;
-            case Card.ServerCount s -> PLANKS;
-            case Card.Countdown c -> STONE;
-            case Card.TopServer t -> GOLD;
-            case Card.LongestSession l -> SANDSTONE;
-            case Card.PlayTime p -> SKY;
-            case Card.Streak s -> SNOW;
-            case Card.ChatCard c -> BOOKSHELF;
-            case Card.Blocks b -> COBBLESTONE;
-            case Card.Fights f -> NETHERRACK;
-            case Card.Type t -> PURPUR;
-            case Card.Summary s -> DIRT;
-        };
+        if (card instanceof Card.Title t) {
+            return GRASS;
+        } else if (card instanceof Card.Guess g) {
+            return STONE;
+        } else if (card instanceof Card.HoursReveal h) {
+            return GRASS;
+        } else if (card instanceof Card.ServerCount s) {
+            return PLANKS;
+        } else if (card instanceof Card.Countdown c) {
+            return STONE;
+        } else if (card instanceof Card.TopServer t) {
+            return GOLD;
+        } else if (card instanceof Card.LongestSession l) {
+            return SANDSTONE;
+        } else if (card instanceof Card.PlayTime p) {
+            return SKY;
+        } else if (card instanceof Card.Streak s) {
+            return SNOW;
+        } else if (card instanceof Card.ChatCard c) {
+            return BOOKSHELF;
+        } else if (card instanceof Card.Blocks b) {
+            return COBBLESTONE;
+        } else if (card instanceof Card.Fights f) {
+            return NETHERRACK;
+        } else if (card instanceof Card.Type t) {
+            return PURPUR;
+        } else if (card instanceof Card.Summary s) {
+            return DIRT;
+        }
+        throw new IllegalStateException("Unknown " + card);
     }
 }

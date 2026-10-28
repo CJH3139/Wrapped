@@ -8,12 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.gui.Font;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.joml.Matrix3x2fStack;
 
 final class HookCards {
     static final String TITLE_LABEL = "Your year in Minecraft";
@@ -25,11 +21,6 @@ final class HookCards {
     private static final long LAND_MS = 2600;
     private static final int GUESS_MAX_SCALE = 3;
     private static final int HOURS_MAX_SCALE = 12;
-    private static final Identifier TAB = Identifier.withDefaultNamespace("widget/tab");
-    private static final Identifier TAB_HOVER = Identifier.withDefaultNamespace("widget/tab_highlighted");
-    private static final Identifier TAB_SELECTED = Identifier.withDefaultNamespace("widget/tab_selected");
-    private static final Identifier TAB_SELECTED_HOVER =
-            Identifier.withDefaultNamespace("widget/tab_selected_highlighted");
     private static final int TAB_IDLE_TEXT = 0xFFA0A0A0;
     private static final int DIVIDER_W = 48;
     private static final int DIVIDER_H = 2;
@@ -52,7 +43,7 @@ final class HookCards {
         int labelH = StageKit.LINE * StageKit.labelScale(content);
         int labelY = Math.max(content.y(), yr.y() - labelH - StageKit.gap(content));
         StageDraw.label(f, TITLE_LABEL, content.x() + content.w() / 2, labelY);
-        Matrix3x2fStack pose = f.g().pose();
+        Gfx pose = f.g();
         for (int i = 0; i < year.length(); i++) {
             float drop = Ease.drop(t - (DIGIT_START_MS + i * DIGIT_STEP_MS));
             if (Float.isNaN(drop)) {
@@ -60,11 +51,11 @@ final class HookCards {
             }
             String digit = year.substring(i, i + 1);
             int dx = yr.x() + font.width(year.substring(0, i)) * scale;
-            pose.pushMatrix();
+            pose.push();
             pose.translate(dx, Math.max(0f, yr.y() + drop * yr.h()));
             pose.scale(scale, scale);
             f.g().text(font, digit, 0, 0, StageKit.WHITE, true);
-            pose.popMatrix();
+            pose.pop();
         }
         if (!StageKit.live(f)) {
             return;
@@ -86,18 +77,18 @@ final class HookCards {
         int regionBottom = slots.isEmpty() ? content.y() + content.h() * 2 / 5 : slots.get(0).y() - gap;
         int regionH = Math.max(0, regionBottom - content.y());
         int qs = 2;
-        List<FormattedCharSequence> lines = font.split(Component.literal(QUESTION), Math.max(1, content.w() / qs));
+        List<String> lines = TextFit.wrap(QUESTION, Math.max(1, content.w() / qs), font::width);
         if (lines.size() > 2 || labelH + gap + lines.size() * StageKit.LINE * qs > regionH) {
             qs = 1;
-            lines = font.split(Component.literal(QUESTION), Math.max(1, content.w()));
+            lines = TextFit.wrap(QUESTION, Math.max(1, content.w()), font::width);
         }
         int groupH = labelH + gap + lines.size() * StageKit.LINE * qs;
         int top = content.y() + Math.max(0, (regionH - groupH) / 2);
         int cx = content.x() + content.w() / 2;
         StageDraw.label(f, GUESS_LABEL, cx, top);
         int ly = top + labelH + gap;
-        for (FormattedCharSequence line : lines) {
-            StageKit.scaled(f, line, cx - font.width(line) * qs / 2, ly, qs, StageKit.WHITE);
+        for (String line : lines) {
+            StageKit.scaled(f, line, cx - font.width(line) * qs / 2, ly, qs, StageKit.WHITE, true);
             ly += StageKit.LINE * qs;
         }
         Optional<Integer> pick = f.view().guessPick();
@@ -153,15 +144,15 @@ final class HookCards {
     }
 
     static Optional<float[]> anchor(StageFrame f, Card card, Anchor anchor, int index) {
-        return switch (card) {
-            case Card.Title c -> Optional.of(titleAnchor(f, c, anchor, index));
-            case Card.Guess c -> Optional.of(StageKit.center(f));
-            case Card.HoursReveal c -> {
-                Hero h = hoursLayout(f, c);
-                yield Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, StageKit.heroNumber(f, h, BIG, c.hours())));
-            }
-            default -> Optional.empty();
-        };
+        if (card instanceof Card.Title c) {
+            return Optional.of(titleAnchor(f, c, anchor, index));
+        } else if (card instanceof Card.Guess c) {
+            return Optional.of(StageKit.center(f));
+        } else if (card instanceof Card.HoursReveal c) {
+            Hero h = hoursLayout(f, c);
+            return Optional.of(StageKit.heroBigCenter(f, h, BIG, 0, StageKit.heroNumber(f, h, BIG, c.hours())));
+        }
+        return Optional.empty();
     }
 
     private static float[] titleAnchor(StageFrame f, Card.Title c, Anchor anchor, int index) {
@@ -190,8 +181,7 @@ final class HookCards {
     private static void tab(StageFrame f, String text, Rect r, boolean active) {
         Font font = f.font();
         boolean hover = StageKit.hovered(f, r);
-        Identifier sprite = active ? (hover ? TAB_SELECTED_HOVER : TAB_SELECTED) : (hover ? TAB_HOVER : TAB);
-        f.g().blitSprite(sprite, r.x(), r.y(), r.w(), r.h());
+        f.g().tab(r.x(), r.y(), r.w(), r.h(), active, hover);
         String t = StageLayout.fitText(text, Math.max(1, r.w() - 6), font::width);
         int tx = r.x() + (r.w() - font.width(t)) / 2;
         int ty = r.y() + (r.h() - 8) / 2;

@@ -3,7 +3,6 @@ package com.wrapped.gui;
 import com.wrapped.compat.Gfx;
 import net.minecraft.client.gui.Font;
 import net.minecraft.world.item.ItemStack;
-import org.joml.Matrix3x2fStack;
 
 final class StageDraw {
     static final int WHITE = 0xFFFFFFFF;
@@ -26,14 +25,14 @@ final class StageDraw {
         String t = scale == 1 ? StageLayout.fitText(text, maxW, font::width) : text;
         int tw = font.width(t) * scale;
         int th = LINE * scale;
-        Matrix3x2fStack pose = f.g().pose();
-        pose.pushMatrix();
+        Gfx pose = f.g();
+        pose.push();
         pose.translate(cx, y + th / 2f);
         pose.scale(punch, punch);
         pose.translate(-tw / 2f, -th / 2f);
         pose.scale(scale, scale);
         f.g().text(font, t, 0, 0, WHITE, true);
-        pose.popMatrix();
+        pose.pop();
         return th;
     }
 
@@ -43,12 +42,12 @@ final class StageDraw {
         int scale = content.w() >= 400 ? 2 : 1;
         String t = StageLayout.fitText(text, content.w() / scale, font::width);
         int tw = font.width(t) * scale;
-        Matrix3x2fStack pose = f.g().pose();
-        pose.pushMatrix();
+        Gfx pose = f.g();
+        pose.push();
         pose.translate(cx - tw / 2f, y);
         pose.scale(scale, scale);
         f.g().text(font, t, 0, 0, WHITE, true);
-        pose.popMatrix();
+        pose.pop();
     }
 
     static void item(StageFrame f, ItemStack stack, int cx, int cy, int size, long ms) {
@@ -60,14 +59,14 @@ final class StageDraw {
             degrees = bob.degrees();
         }
         float scale = size / 16f;
-        Matrix3x2fStack pose = f.g().pose();
-        pose.pushMatrix();
+        Gfx pose = f.g();
+        pose.push();
         pose.translate(cx, cy + dy);
         pose.rotate((float) Math.toRadians(degrees));
         pose.scale(scale, scale);
         pose.translate(-8f, -8f);
         f.g().item(stack, 0, 0);
-        pose.popMatrix();
+        pose.pop();
     }
 
     static void slot(StageFrame f, Rect r) {
@@ -97,8 +96,8 @@ final class StageDraw {
         int left = -boxW / 2;
         int top = -boxH / 2;
         Gfx g = f.g();
-        Matrix3x2fStack pose = g.pose();
-        pose.pushMatrix();
+        Gfx pose = g;
+        pose.push();
         pose.translate(cx, cy);
         pose.rotate((float) Math.toRadians(degrees));
         pose.scale(pop, pop);
@@ -109,7 +108,7 @@ final class StageDraw {
         pose.translate(-tw / 2f, -th / 2f + scale / 2f);
         pose.scale(scale, scale);
         g.text(font, t, 0, 0, color, true);
-        pose.popMatrix();
+        pose.pop();
     }
 
     static void progress(StageFrame f) {

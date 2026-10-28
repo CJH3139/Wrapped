@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "wrapped_selftest",
+  "version": "1.0.0",
+  "name": "Wrapped self-test",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.wrapped.gui.SelfTest"]
+  },
+  "depends": {
+    "wrapped": "*"
+  }
+}

@@ -1,10 +1,9 @@
 package com.wrapped.gui;
 
+import com.wrapped.compat.Gfx;
 import java.util.List;
 import net.minecraft.client.gui.Font;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
-import org.joml.Matrix3x2fStack;
 
 final class StageKit {
     static final long REST = Long.MAX_VALUE / 4;
@@ -103,25 +102,14 @@ final class StageKit {
         if (color == 0 || text.isEmpty()) {
             return;
         }
-        Matrix3x2fStack pose = f.g().pose();
-        pose.pushMatrix();
+        Gfx pose = f.g();
+        pose.push();
         pose.translate(x, y);
         pose.scale(scale, scale);
         f.g().text(f.font(), text, 0, 0, color, shadow);
-        pose.popMatrix();
+        pose.pop();
     }
 
-    static void scaled(StageFrame f, FormattedCharSequence text, int x, int y, int scale, int color) {
-        if (color == 0) {
-            return;
-        }
-        Matrix3x2fStack pose = f.g().pose();
-        pose.pushMatrix();
-        pose.translate(x, y);
-        pose.scale(scale, scale);
-        f.g().text(f.font(), text, 0, 0, color, true);
-        pose.popMatrix();
-    }
 
     static void centered(StageFrame f, String text, int cx, int y, int maxW, int scale, int color, boolean shadow) {
         Font font = f.font();
@@ -138,13 +126,13 @@ final class StageKit {
     }
 
     static void inScale(StageFrame f, float cx, float cy, float s, Runnable draw) {
-        Matrix3x2fStack pose = f.g().pose();
-        pose.pushMatrix();
+        Gfx pose = f.g();
+        pose.push();
         pose.translate(cx, cy);
         pose.scale(s, s);
         pose.translate(-cx, -cy);
         draw.run();
-        pose.popMatrix();
+        pose.pop();
     }
 
     static int boxHeight(int valueScale) {
