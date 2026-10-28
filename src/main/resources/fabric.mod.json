@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "wrapped",
+  "version": "${version}",
+  "name": "Wrapped",
+  "description": "Your year in Minecraft, from the history already on your PC.",
+  "authors": ["roych"],
+  "license": "Apache-2.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.wrapped.WrappedClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_dependency}",
+    "java": ">=25"
+  }
+}
